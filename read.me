@@ -1,0 +1,34 @@
+# ⛽ Real-Time Cross-Chain Gas Tracker (Ethereum MVP)
+
+A Web3 dashboard built with **Next.js**, **Ethers.js**, and **Zustand**.
+
+This project tracks real-time gas fees on Ethereum using Infura WebSockets and calculates estimated transaction cost in USD using Uniswap V3 ETH/USDC pool data.
+
+---
+
+## 🚀 Features
+
+- ✅ Live gas price updates using `WebSocketProvider`
+- ✅ ETH/USD price fetched from **Uniswap V3 Swap events**
+- ✅ Gas cost estimation in USD
+- ✅ Zustand-powered state toggle between "Live" & "Simulation" mode
+
+---
+
+## 🛠️ Stack
+
+- React + Next.js (App Router)
+- Ethers.js v6
+- Zustand
+- Infura RPC & WebSockets
+- Uniswap V3 on-chain price data
+
+---
+
+## 🧪 Getting Started
+
+```bash
+git clone https://github.com/hellobro12/tracler-app.git
+cd tracler-app
+npm install
+npm run dev
