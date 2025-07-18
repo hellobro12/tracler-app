@@ -14,7 +14,7 @@ export default function Home() {
     setMode,
   } = useStore();
 
-  // Real-time gas fee via WebSocket
+  // ✅ Real-time gas fee via WebSocket with fallback baseFee
   useEffect(() => {
     if (mode !== "live") return;
 
@@ -24,10 +24,15 @@ export default function Home() {
 
     provider.on("block", async (blockNumber: number) => {
       const block = await provider.getBlock(blockNumber);
-      const baseFee = Number(
-        ethers.utils.formatUnits(block.baseFeePerGas || 0, "gwei")
-      );
+
+      let rawBaseFee = block.baseFeePerGas;
+      if (!rawBaseFee || rawBaseFee.isZero()) {
+        rawBaseFee = ethers.BigNumber.from("5000000000"); // fallback: 5 gwei in wei
+      }
+
+      const baseFee = Number(ethers.utils.formatUnits(rawBaseFee, "gwei"));
       const priorityFee = 2; // static for demo
+
       setGasData({ baseFee, priorityFee });
     });
 
@@ -37,40 +42,15 @@ export default function Home() {
     };
   }, [mode, setGasData]);
 
-  // Fetch ETH/USD from Uniswap V3
+  // ✅ ETH/USD from CoinGecko (accurate + easy)
   useEffect(() => {
     const fetchEthUsd = async () => {
       try {
-        const iface = new ethers.utils.Interface([
-          "event Swap(address indexed sender, address indexed recipient, int256 amount0, int256 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick)",
-        ]);
-
-        const provider = new ethers.providers.JsonRpcProvider(
-          "https://mainnet.infura.io/v3/d456771d022f423bbdb73aea1be7ae01"
+        const res = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
         );
-
-        const currentBlock = await provider.getBlockNumber();
-
-        const logs = await provider.getLogs({
-          address: "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8", // ETH/USDC pool
-          topics: [iface.getEventTopic("Swap")],
-          fromBlock: currentBlock - 1000,
-          toBlock: currentBlock,
-        });
-
-        if (logs.length === 0) {
-          console.warn("No swap logs found.");
-          return;
-        }
-
-        const parsed = iface.parseLog(logs[logs.length - 1]);
-        const sqrtPriceX96 = parsed.args.sqrtPriceX96 as ethers.BigNumber;
-
-        const price = sqrtPriceX96
-          .mul(sqrtPriceX96)
-          .div(ethers.BigNumber.from(2).pow(192));
-
-        const ethUsd = 1 / Number(ethers.utils.formatUnits(price, 6));
+        const data = await res.json();
+        const ethUsd = data.ethereum.usd;
         setUsdPrice(ethUsd);
       } catch (err) {
         console.error("🔴 Failed to fetch ETH/USD price:", err);
@@ -78,12 +58,15 @@ export default function Home() {
     };
 
     fetchEthUsd();
+    const interval = setInterval(fetchEthUsd, 30000); // refresh every 30 sec
+    return () => clearInterval(interval);
   }, [setUsdPrice]);
 
   const gasCostUSD = (
     (ethereum.baseFee + ethereum.priorityFee) *
     21000 *
-    usdPrice
+    usdPrice /
+    1e9
   ).toFixed(2);
 
   return (
