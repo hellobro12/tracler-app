@@ -1,39 +1,36 @@
-// store/index.ts
-import { create } from 'zustand';
+import { create } from "zustand";
 
-type ChainData = {
+export type Chain = "ethereum" | "polygon" | "arbitrum";
+
+export interface ChainData {
   baseFee: number;
   priorityFee: number;
-  history: { timestamp: number; price: number }[];
-};
+}
 
-type StoreState = {
-  mode: 'live' | 'simulation';
-  chains: {
-    ethereum: ChainData;
-  };
+interface GasStore {
+  mode: "live" | "simulation";
   usdPrice: number;
-  setGasData: (gas: Partial<ChainData>) => void;
+  chains: Record<Chain, ChainData>;
+  setGasData: (chain: Chain, data: ChainData) => void;
   setUsdPrice: (price: number) => void;
-  setMode: (mode: 'live' | 'simulation') => void;
-};
+  setMode: (mode: "live" | "simulation") => void;
+}
 
-export const useStore = create<StoreState>((set) => ({
-  mode: 'live',
-  chains: {
-    ethereum: {
-      baseFee: 0,
-      priorityFee: 2,
-      history: [],
-    },
-  },
+export const useStore = create<GasStore>((set) => ({
+  mode: "live",
   usdPrice: 0,
-  setGasData: (gas) =>
+  chains: {
+    ethereum: { baseFee: 0, priorityFee: 2 },
+    polygon: { baseFee: 0, priorityFee: 2 },
+    arbitrum: { baseFee: 0, priorityFee: 2 },
+  },
+  setGasData: (chain, data) =>
     set((state) => ({
       chains: {
-        ethereum: {
-          ...state.chains.ethereum,
-          ...gas,
+        ...state.chains,
+        [chain]: {
+          baseFee: data.baseFee,
+          priorityFee: data.priorityFee,
         },
       },
     })),
