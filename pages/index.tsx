@@ -1,16 +1,15 @@
-// index.tsx
+
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { useStore, Chain } from "../store";
-import { CandlestickData } from "lightweight-charts";
+import { CandlestickData, UTCTimestamp } from "lightweight-charts";
 import CandlestickChart from "@/components/CandlestickChart";
-import { UTCTimestamp } from "lightweight-charts";
 
 
 const RPC_URLS: Record<Chain, string> = {
-  ethereum: "wss://mainnet.infura.io/ws/v3/YOUR_INFURA_KEY",
-  polygon: "wss://polygon-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY",
-  arbitrum: "wss://arb-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY",
+  ethereum: "wss://mainnet.infura.io/ws/v3/d456771d022f423bbdb73aea1be7ae01",
+  polygon: "wss://polygon-mainnet.g.alchemy.com/v2/3YZqyYAfaMPKCmBp0-8TG",
+  arbitrum: "wss://arb-mainnet.g.alchemy.com/v2/IewQdFkjUDI4HAxlYT-Xr",
 };
 
 export default function Home() {
@@ -25,7 +24,7 @@ export default function Home() {
     setMode,
   } = useStore();
 
-  // Real-time gas fee via WebSocket for all chains
+  // Real-time gas fee via WebSocket
   useEffect(() => {
     if (mode !== "live") return;
 
@@ -55,7 +54,7 @@ export default function Home() {
     };
   }, [mode, setGasData]);
 
-  // ETH/USD via CoinGecko fallback
+  // ETH/USD fetch from CoinGecko
   useEffect(() => {
     const fetchEthUsd = async () => {
       try {
@@ -75,7 +74,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [setUsdPrice]);
 
-  // Dummy candlestick data
+  // Dummy candlestick data (15-min intervals)
   const dummyChartData: CandlestickData[] = [
     {
       time: 1689552000 as UTCTimestamp,
@@ -85,14 +84,14 @@ export default function Home() {
       close: 1820,
     },
     {
-       time: 1689552600 as UTCTimestamp,
+      time: 1689552600 as UTCTimestamp,
       open: 1820,
       high: 1880,
       low: 1800,
       close: 1860,
     },
     {
-       time: 1689553200 as UTCTimestamp,
+      time: 1689553200 as UTCTimestamp,
       open: 1860,
       high: 1900,
       low: 1850,
@@ -117,17 +116,34 @@ export default function Home() {
 
       {(Object.keys(chains) as Chain[]).map((chain) => {
         const { baseFee, priorityFee } = chains[chain];
-        const costUSD = ((baseFee + priorityFee) * 21000 * usdPrice / 1e9).toFixed(2);
+        const gasEth = ((baseFee + priorityFee) * 21000) / 1e9;
+        const gasUSD = (gasEth * usdPrice).toFixed(2);
+        const walletBalance = 1.2;
+        const txEth = parseFloat(inputEth || "0");
+        const totalEth = gasEth + txEth;
+        const remainingEth = walletBalance - totalEth;
 
         return (
-          <div key={chain} className="my-4 space-y-1 text-gray-800">
-            <p className="font-semibold">🔗 {chain.charAt(0).toUpperCase() + chain.slice(1)}</p>
+          <div key={chain} className="my-6 p-4 border rounded shadow bg-white">
+            <p className="font-semibold text-lg mb-2">
+              🔗 {chain.charAt(0).toUpperCase() + chain.slice(1)}
+            </p>
+
             <p>📦 Base Fee: <strong>{baseFee.toFixed(3)}</strong> gwei</p>
             <p>⚡ Priority Fee: <strong>{priorityFee}</strong> gwei</p>
             <p>💰 ETH/USD: <strong>${usdPrice.toFixed(2)}</strong></p>
-            <p className="text-lg font-medium mt-2">
-              ✅ Estimated Gas (USD): <strong>${costUSD}</strong>
-            </p>
+            <p>💸 Gas Cost: <strong>{gasEth.toFixed(6)}</strong> ETH (~${gasUSD})</p>
+
+            {/* Wallet Simulation Section */}
+            <div className="mt-4 bg-gray-100 p-3 rounded">
+              <p className="font-semibold text-gray-700 mb-1">🧪 Wallet Simulation</p>
+              <p>Wallet Balance: <strong>{walletBalance}</strong> ETH</p>
+              <p>Transaction Value: <strong>{txEth}</strong> ETH</p>
+              <p>Total Deducted (TX + Gas): <strong>{totalEth.toFixed(6)}</strong> ETH</p>
+              <p className={remainingEth >= 0 ? "text-green-600" : "text-red-600"}>
+                Remaining Balance: <strong>{remainingEth.toFixed(6)}</strong> ETH
+              </p>
+            </div>
           </div>
         );
       })}
@@ -147,4 +163,3 @@ export default function Home() {
     </main>
   );
 }
-
