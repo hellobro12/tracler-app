@@ -155,7 +155,7 @@ export default function Home() {
         Switch to {mode === "live" ? "Simulation" : "Live"} Mode
       </button>
 
-      {/* Dummy Candlestick Chart */}
+      
       <div className="mt-10">
         <h2 className="text-xl font-semibold mb-2">15-Min Candlestick Chart (Dummy)</h2>
         <CandlestickChart data={dummyChartData} />
