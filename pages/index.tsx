@@ -24,7 +24,7 @@ export default function Home() {
     setMode,
   } = useStore();
 
-  // Real-time gas fee via WebSocket
+  
   useEffect(() => {
     if (mode !== "live") return;
 
