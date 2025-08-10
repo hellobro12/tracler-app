@@ -9,7 +9,7 @@ import {
 interface Props {
   data: CandlestickData[];
 }
-
+// exporting candlestickchart
 export default function CandlestickChart({ data }: Props) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
