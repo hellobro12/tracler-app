@@ -5,7 +5,7 @@ import { useStore, Chain } from "../store";
 import { CandlestickData, UTCTimestamp } from "lightweight-charts";
 import CandlestickChart from "@/components/CandlestickChart";
 
-
+// rpc url
 const RPC_URLS: Record<Chain, string> = {
   ethereum: "wss://mainnet.infura.io/ws/v3/d456771d022f423bbdb73aea1be7ae01",
   polygon: "wss://polygon-mainnet.g.alchemy.com/v2/3YZqyYAfaMPKCmBp0-8TG",
