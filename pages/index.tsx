@@ -24,7 +24,7 @@ export default function Home() {
     setMode,
   } = useStore();
 
-  // live exchange
+  // live exchange and currency 
   useEffect(() => {
     if (mode !== "live") return;
 
